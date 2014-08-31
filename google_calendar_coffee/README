@@ -1,0 +1,28 @@
+This set of scripts use the Google Calendar API to schedule my coffee maker to turn on when I have an event on my calendar with title "make coffee".
+
+It would be trivial to change any of these scripts to kick off other commands based on other calendar events.
+
+
+
+
+
+
+
+
+addToQueue.sh                          Does the queueing, using the bash command 'at'
+google_calendar_config.py              configuration file, real.  cp the example to this file and then customize
+google_calendar_config.py.EXAMPLE      example configuration file. cp google_calendar_config.py.EXAMPLE google_calendar_config.py and then edit google_calendar_config.py
+makeCoffeeManually.sh                  small script for kicking off coffee making manually (I used it for a web interface; php ran this shell script).
+makeCoffee.py                          The script that actually runs on schedule.  It uses another script which controls wireless RF outlets (a personal choice of implementation).
+queryCalendar.py                       script which logs in and parses Google Calendar. Calls addToQueue.sh if future event found.
+queryCalendar_wrapper.sh               Wrapper script: sometimes queryCalendar.py doesn't work from cron.
+
+
+
+
+execution flowchart:
+
+
+queryCalendar_wrapper.sh  -->  queryCalendar.py  -->  addToQueue.sh  --> |bash 'at' program for scheduling|  |->  makeCoffee.py
+
+

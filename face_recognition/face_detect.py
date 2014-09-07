@@ -2,29 +2,16 @@ import cv2
 import cv2.cv as cv
 import getopt, sys
 import uuid
-
-
+import sys, math, Image
 
 cascade_dir="/usr/local/share/OpenCV/haarcascades/"
-
-def detect(img, cascade):
-#   for scale in [float(i)/10 for i in range(11, 15)]:
-#      for neighbors in range(4):
-   rects = cascade.detectMultiScale(img, scaleFactor=1.2, minNeighbors=4,
-                                             minSize=(40, 40), flags=cv2.cv.CV_HAAR_SCALE_IMAGE)
-#         if len(rects) > 0:
-   print 'found %d faces' % (len(rects))
-   return rects
-
-
-
-import sys, math, Image
 
 def find_face_from_img(img):
    #convert
    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
    gray = cv2.equalizeHist(gray)
-   rects = detect(gray, cascade)
+   rects = cascade.detectMultiScale(img, scaleFactor=1.2, minNeighbors=3, minSize=(40, 40), flags=cv2.cv.CV_HAAR_SCALE_IMAGE)
+   print 'found %d faces' % (len(rects))
    if len(rects) > 0:
       image_scale=1.0
       for x, y, w, h in rects:
@@ -35,7 +22,6 @@ def find_face_from_img(img):
          face = img[y: y + h, x: x + w]
          face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
          face = cv2.equalizeHist(face)
-
          eyes = eyecascade.detectMultiScale(face, scaleFactor=1.2, minNeighbors=3, minSize=(3,3),flags=cv2.cv.CV_HAAR_SCALE_IMAGE)
          if len(eyes)==2: #if two eyes aren't detected, throw away the face
             eye=[]
@@ -43,17 +29,18 @@ def find_face_from_img(img):
                eye.append((int(xx+xx+ww)/2, int(yy+yy+hh)/2))
                pt1 = (int(xx), int(yy))
                pt2 = (int((xx + ww) ), int((yy + hh)))
-               cv2.rectangle(face,pt1,pt2,(255,0,0))
+         #      cv2.rectangle(face,pt1,pt2,(255,0,0))
                cv2.circle(face,((int(xx+xx+ww)/2, int(yy+yy+hh)/2)),4,255,-1)
+            eye = [ min(eye), max(eye) ] #sort the eyes
+            angle = math.atan2(eye[1][1] - eye[0][1], eye[1][0] - eye[0][0])
+            rot = cv2.getRotationMatrix2D(eye[0], -angle, 1.0 )
+            face = cv2.warpAffine(face, rot, (150,150))
+            face = cv2.resize(face,(150,150), interpolation=cv.CV_INTER_CUBIC)
             cv2.imwrite("faces/" + str(uuid.uuid4()) + ".jpg",face)
 def Distance(p1,p2):
   dx = p2[0] - p1[0]
   dy = p2[1] - p1[1]
   return math.sqrt(dx*dx+dy*dy)
-
-
-
-
 
 
 
